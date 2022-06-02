@@ -2,7 +2,13 @@
 
 This repository contains my GPG keys currently in use.
 
-## My public GPG keys
+## All my GPG keys
+
+| Account    | Key file             | Fingerprint                                        |
+| ---------- | -------------------- | -------------------------------------------------- |
+| bart@gcs   | B61CDFDAC50F3186.pub | D9E1 B3CE B81F CDFD 2026  4CF0 B61C DFDA C50F 3186 |
+| bart@paris | bart-paris.pub       |  |
+| bart@t20   | bart-t20.pub         |  |
 
 ## Generation of GPG keys
 
@@ -16,6 +22,7 @@ To export public key use:
 
 ```bash
 gpg --export --armour > KEY_ID.pub
+gpg --fingerprint
 ```
 
 To configure key to be used for signing git commits:
