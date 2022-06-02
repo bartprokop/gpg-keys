@@ -10,7 +10,7 @@ This repository contains my GPG keys currently in use.
 | bart@paris | bart-paris.pub       |  |
 | bart@t20   | bart-t20.pub         |  |
 
-## Generation of GPG keys
+## Command line cheatsheet
 
 To generate GPG keys, use the following command and select 9) ECC and ECC folloed by 1) Curve 25519.
 
@@ -34,4 +34,11 @@ git config --global commit.gpgsign true
 
 gpg --list-secret-keys --keyid-format LONG
 git config --global user.signingkey KEY_ID
+```
+
+To import a (public) key from file:
+
+```bash
+gpg --import public_key.gpg
+gpg --sign-key KEY_IDENTIFIER
 ```
