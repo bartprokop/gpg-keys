@@ -4,6 +4,10 @@ This repository contains my GPG keys currently in use.
 
 ## All my GPG keys
 
+### Master Key - Brain Backed
+
+See: https://nullprogram.com/blog/2019/07/10/
+
 ### Low value GPG keys
 
 The low value GPG keys are tied to account I have on various machines I work on.
@@ -13,7 +17,7 @@ Those varies from personal laptop, through dedicated cloud servers to cloud shel
 | ---------- | -------------------- | -------------------------------------------------- |
 | bart@gcs   | B61CDFDAC50F3186.gpg | D9E1 B3CE B81F CDFD 2026  4CF0 B61C DFDA C50F 3186 |
 | bart@paris | F69338AE4FE91AFB.gpg | 07EE 7CE8 2136 B462 9979  A74E F693 38AE 4FE9 1AFB |
-| bart@t20   | bart-t20.pub         |  |
+| bart@t20   | 065EAB6A95B9DA86.gpg | 048C 2E32 E320 2297 673F  2718 065E AB6A 95B9 DA86 |
 
 ## Command line cheatsheet
 
