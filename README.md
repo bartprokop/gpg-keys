@@ -47,3 +47,19 @@ To import a (public) key from file:
 gpg --import public_key.gpg
 gpg --sign-key KEY_IDENTIFIER
 ```
+
+To import a (public) key from key server
+
+```
+gpg --recv-key KEY_IDENTIFIER
+gpg -u SIGNING_KEY --sign-key KEY_TO_SIGN
+gpg --list-signatures KEY_IDENTIFIER
+gpg --send-keys KEY_IDENTIFIER
+```
+
+To delete keys from keyring
+
+```
+gpg --delete-keys KEY_IDENTIFIER
+gpg --delete-secret-keys KEY_IDENTIFIER
+```
