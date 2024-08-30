@@ -1,5 +1,7 @@
 # YubiKey 5C NFC
 
+Short documentation how to set-up YubiKey OpenPGP applet.
+
 ## Checking if everything works
 
 Basic info check with YubiKey Manager command line:
@@ -24,11 +26,11 @@ GPG operational check with command line:
 ```
 $ gpg --card-status
 Reader ...........: Yubico YubiKey OTP FIDO CCID 0
-Application ID ...: D2760001240100000006224798680000
+Application ID ...: D******************************0
 Application type .: OpenPGP
 Version ..........: 3.4
 Manufacturer .....: Yubico
-Serial number ....: 22479868
+Serial number ....: 2******8
 Name of cardholder: [not set]
 Language prefs ...: [not set]
 Salutation .......:
@@ -137,11 +139,11 @@ The card will now be re-configured to generate a key of type: ed25519
 gpg/card> list
 
 Reader ...........: Yubico YubiKey OTP FIDO CCID 0
-Application ID ...: D2760001240100000006224798680000
+Application ID ...: D******************************0
 Application type .: OpenPGP
 Version ..........: 3.4
 Manufacturer .....: Yubico
-Serial number ....: 22479868
+Serial number ....: 2******8
 Name of cardholder: [not set]
 Language prefs ...: [not set]
 Salutation .......:
@@ -160,7 +162,23 @@ Authentication key: [none]
 General key info..: [none]
 ```
 
+The `Key attributes` above proves we have the expected key types set.
 
+It is also worth to "personalise" OpenPGP apple, but those values are not really used by GPG:
+
+```
+gpg/card> name
+Cardholder's surname: Prokop
+Cardholder's given name: Bart
+
+gpg/card> lang
+Language preferences: en
+
+gpg/card> salutation
+Salutation (M = Mr., F = Ms., or space): M
+```
+
+## Generating the keys
 
 ## Additional resources
 
@@ -183,13 +201,3 @@ Your YubiKey now has the default PIN, PUK and Management Key:
 
 
 $ gpg-connect-agent "SCD RANDOM 10" /bye
-
-
-
-
-
-
-
-1 pazdziernika 
-
-
