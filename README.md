@@ -52,6 +52,13 @@ gpg --import public_key.gpg
 gpg --sign-key KEY_IDENTIFIER
 ```
 
+To import a (public) key from file
+
+```
+gpg --import publickey.gpg
+gpg --import < publickey.gpg
+```
+
 To import a (public) key from key server
 
 ```
