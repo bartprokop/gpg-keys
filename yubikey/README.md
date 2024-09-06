@@ -4,7 +4,7 @@ Short documentation how to set-up YubiKey OpenPGP applet.
 
 ## Checking if everything works
 
-Basic info check with YubiKey Manager command line:
+Basic info check can be done with the YubiKey Manager command line:
 
 ```
 C:\Program Files\Yubico\YubiKey Manager>ykman.exe openpgp info
@@ -21,7 +21,7 @@ Touch policies:
   Attestation key:    Off
 ```
 
-GPG operational check with command line:
+Then follow up with an GPG operational check:
 
 ```
 $ gpg --card-status
@@ -71,10 +71,9 @@ gpg/card> admin
 gpg/card> kdf-setup
 ```
 
-## Configuring card - prior to key generation
+## Configuring OpenPGP card - prior to key generation
 
-We want to switch from RSA to EC.
-YubiKey support the following EC curves (you might need to use `gpg --card-edit --expert` mode):
+We want to switch from RSA to EC. My YubiKey support the following EC curves (you might need to use `gpg --card-edit --expert` mode):
 
 ```
 Please select which elliptic curve you want:
@@ -164,7 +163,7 @@ General key info..: [none]
 
 The `Key attributes` above proves we have the expected key types set.
 
-It is also worth to "personalise" OpenPGP apple, but those values are not really used by GPG:
+It is also worth to "personalise" OpenPGP applet, but those values are not really used by GPG:
 
 ```
 gpg/card> name
@@ -179,6 +178,129 @@ Salutation (M = Mr., F = Ms., or space): M
 ```
 
 ## Generating the keys
+
+### Sort out PINs prior to generating keys
+
+```
+$ gpg --card-edit
+
+gpg/card> admin
+
+gpg/card> passwd
+gpg: OpenPGP card no. D******************************0 detected
+
+1 - change PIN
+2 - unblock PIN
+3 - change Admin PIN
+4 - set the Reset Code
+Q - quit
+
+Your selection? 3
+PIN changed.
+
+1 - change PIN
+2 - unblock PIN
+3 - change Admin PIN
+4 - set the Reset Code
+Q - quit
+
+Your selection? 4
+Reset Code set.
+
+gpg/card> list
+
+Reader ...........: Yubico YubiKey OTP FIDO CCID 0
+Application ID ...: D******************************0
+Application type .: OpenPGP
+Version ..........: 3.4
+Manufacturer .....: Yubico
+Serial number ....: 2******8
+Name of cardholder: Bart Prokop
+Language prefs ...: en
+Salutation .......: Mr.
+URL of public key : [not set]
+Login data .......: [not set]
+Signature PIN ....: not forced
+Key attributes ...: ed25519 cv25519 ed25519
+Max. PIN lengths .: 127 127 127
+PIN retry counter : 3 3 3
+Signature counter : 0
+KDF setting ......: on
+UIF setting ......: Sign=off Decrypt=off Auth=off
+Signature key ....: [none]
+Encryption key....: [none]
+Authentication key: [none]
+General key info..: [none]
+```
+
+### On card key generation
+
+```
+$ gpg --card-edit
+
+admin
+Admin commands are allowed
+
+gpg/card> generate
+Make off-card backup of encryption key? (Y/n) n
+Please specify how long the key should be valid.
+         0 = key does not expire
+      <n>  = key expires in n days
+      <n>w = key expires in n weeks
+      <n>m = key expires in n months
+      <n>y = key expires in n years
+Key is valid for? (0)
+Key does not expire at all
+Is this correct? (y/N) y
+
+GnuPG needs to construct a user ID to identify your key.
+
+Real name: Bart Prokop
+Email address: bart@prokop.dev
+Comment: YubiKey 5C NFC
+You selected this USER-ID:
+    "Bart Prokop (YubiKey 5C NFC) <bart@prokop.dev>"
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? O
+gpg: revocation certificate stored as '/c/Users/proko/.gnupg/openpgp-revocs.d/6CFEDB429D84EDCE69CCF1CEEA86B9CE4982B047.rev'
+public and secret key created and signed.
+
+gpg/card> quit
+pub   ed25519 2024-09-03 [SC]
+      6CFEDB429D84EDCE69CCF1CEEA86B9CE4982B047
+uid                      Bart Prokop (YubiKey 5C NFC) <bart@prokop.dev>
+sub   ed25519 2024-09-03 [A]
+sub   cv25519 2024-09-03 [E]
+```
+
+### Check what private keys are there
+
+```
+$ gpg --list-secret-keys --keyid-format=long
+/c/Users/proko/.gnupg/pubring.kbx
+---------------------------------
+sec>  ed25519/EA86B9CE4982B047 2024-09-03 [SC]
+      6CFEDB429D84EDCE69CCF1CEEA86B9CE4982B047
+      Card serial no. = 0006 22479868
+uid                 [ultimate] Bart Prokop (YubiKey 5C NFC) <bart@prokop.dev>
+ssb>  ed25519/D6296AB7E297F23D 2024-09-03 [A]
+ssb>  cv25519/BB8211404F0A06C6 2024-09-03 [E]
+```
+
+### Attestation
+
+The below creates digital signature using Yubikey hardcoded certificates:
+
+```
+C:\Program Files\Yubico\YubiKey Manager>ykman.exe openpgp keys attest SIG \Users\proko\code\gpg-keys\yubikey\sig-EA86B9CE4982B047.crt
+Enter PIN:
+
+C:\Program Files\Yubico\YubiKey Manager>ykman.exe openpgp keys attest ENC \Users\proko\code\gpg-keys\yubikey\enc-BB8211404F0A06C6.crt
+Enter PIN:
+
+C:\Program Files\Yubico\YubiKey Manager>ykman.exe openpgp keys attest AUT \Users\proko\code\gpg-keys\yubikey\aut-D6296AB7E297F23D.crt
+Enter PIN:
+```
 
 ## Additional resources
 
