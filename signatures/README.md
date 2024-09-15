@@ -1,12 +1,12 @@
 # Signing with GPG
 
-## Code signing
+## Git Code signing
 
 ### Adopted solution
 
-- I'm using multiple machines to develop the code, so I'm committing from multiple machines.
-- I prefer not to share single signing key across multiple machines. If one machine is compromised, all my work will be compromised (as long as GPG signature is considered).
-- I will generate a single signing sub-key per machine.
+- I'm using multiple machines to develop the code, thus I'm committing from multiple machines.
+- I prefer not to share single signing key across multiple machines. If one machine gets compromised, all my work will be compromised (as long as GPG signature is considered).
+- I will generate a single code signing sub-key per machine.
 
 ### Generation of signing master key
 
@@ -100,3 +100,60 @@ Sending masterkey to key-server might not be the worst idea:
 ➜  ~ gpg --send-keys 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
 gpg: sending key CE4B83F76925A7FA to hkps://keyserver.ubuntu.com
 ```
+
+Or even exporting public in plain text to share explicitly:
+
+```bash
+➜  ~ gpg --export --armor 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEZuQYkhYJKwYBBAHaRw8BAQdAX/PoDTBC28stWqlj5kr9i0AlQqUIGK6KFiWf
+F14RTpi0LEJhcnQgUHJva29wIChjb2RlIHNpZ25pbmcpIDxiYXJ0QHByb2tvcC5k
+ZXY+iJMEExYKADsWIQRMxbdDYgbUPYm8iiLOS4P3aSWn+gUCZuQYkgIbAQULCQgH
+AgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRDOS4P3aSWn+pbvAP9HBJNtt49/NYoN
+Q4fNJPe9Nj8Un3BvggBi5MlAHzmypQD/ey4kw9GLFJpuAamet5P2ap+dgJZKxO0k
+Ks3jGR6CLAc=
+=SZb2
+-----END PGP PUBLIC KEY BLOCK-----
+```
+
+### Back-up of the master signing key
+
+Ideally we create backup of private master key:
+
+```
+$ gpg --armour --export-options export-backup --export-secret-keys 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA | \
+  gpg --armour --cipher-algo AES256 --output /tmp/4CC5B7436206D43D89BC8A22CE4B83F76925A7FA.asc --symmetric
+
+ ┌─────────────────────────────────────────────────────────────┐
+ │ Enter passphrase                                            │
+ │                                                             │
+ │                                                             │
+ │ Passphrases match.                                          │
+ │                                                             │
+ │ Passphrase: ******************************_________________ │
+ │                                                             │
+ │ Repeat: ******************************_____________________ │
+ │ ┌─────────────────────────────────────────────────────────┐ │
+ │ │▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮100%▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮│ │
+ │ └─────────────────────────────────────────────────────────┘ │
+ │        <OK>                                   <Cancel>      │
+ └─────────────────────────────────────────────────────────────┘
+
+ ┌───────────────────────────────────────────────────────────────┐
+ │ Please enter the passphrase to export the OpenPGP secret key: │
+ │ "Bart Prokop (code signing) <bart@prokop.dev>"                │
+ │ 255-bit EDDSA key, ID CE4B83F76925A7FA,                       │
+ │ created 2024-09-13.                                           │
+ │                                                               │
+ │                                                               │
+ │ Passphrase: **********************___________________________ │
+ │                                                               │
+ │         <OK>                                   <Cancel>       │
+ └───────────────────────────────────────────────────────────────┘
+```
+
+Store securely (ideally offline) the file from /tmp folder.
+
+### Create signing key
+
