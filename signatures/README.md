@@ -157,3 +157,96 @@ Store securely (ideally offline) the file from /tmp folder.
 
 ### Create signing key
 
+If some option are not available, use `--expert` switch.
+
+```bash
+$ gpg --edit-key 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+gpg (GnuPG) 2.4.5; Copyright (C) 2024 g10 Code GmbH
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Secret key is available.
+
+sec  ed25519/CE4B83F76925A7FA
+     created: 2024-09-13  expires: never       usage: C
+     trust: ultimate      validity: ultimate
+[ultimate] (1). Bart Prokop (code signing) <bart@prokop.dev>
+
+gpg> addkey
+Please select what kind of key you want:
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+   (5) Elgamal (encrypt only)
+   (6) RSA (encrypt only)
+  (10) ECC (sign only)
+  (12) ECC (encrypt only)
+  (14) Existing key from card
+Your selection? 10
+Please select which elliptic curve you want:
+   (1) Curve 25519 *default*
+   (4) NIST P-384
+   (6) Brainpool P-256
+Your selection? 1
+Please specify how long the key should be valid.
+         0 = key does not expire
+      <n>  = key expires in n days
+      <n>w = key expires in n weeks
+      <n>m = key expires in n months
+      <n>y = key expires in n years
+Key is valid for? (0)
+Key does not expire at all
+Is this correct? (y/N) y
+Really create? (y/N) y
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+
+sec  ed25519/CE4B83F76925A7FA
+     created: 2024-09-13  expires: never       usage: C
+     trust: ultimate      validity: ultimate
+ssb  ed25519/3A25D90B2E35828B
+     created: 2024-09-15  expires: never       usage: S
+[ultimate] (1). Bart Prokop (code signing) <bart@prokop.dev>
+
+gpg> quit
+Save changes? (y/N) y
+```
+
+```bash
+$ gpg -K
+[keyboxd]
+---------
+sec   ed25519 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid           [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
+ssb   ed25519 2024-09-15 [S]
+```
+
+### Configure Git to allow signing
+
+```bash
+$ git config --global user.name "Bart Prokop"
+$ git config --global user.email "bart@prokop.dev"
+```
+
+```bash
+gpg --list-secret-keys --keyid-format=long
+[keyboxd]
+---------
+sec   ed25519/CE4B83F76925A7FA 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid                 [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
+ssb   ed25519/3A25D90B2E35828B 2024-09-15 [S]
+
+gpg --list-secret-keys --keyid-format=long
+[keyboxd]
+---------
+sec   ed25519/CE4B83F76925A7FA 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid                 [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
+ssb   ed25519/3A25D90B2E35828B 2024-09-15 [S]
+
+$ git config --global user.signingkey 3A25D90B2E35828B
+$ git config --global commit.gpgsign true
+```
