@@ -1,12 +1,16 @@
 # Signing with GPG
 
-## Git Code signing
+## Code signing Master key
 
 ### Adopted solution
 
 - I'm using multiple machines to develop the code, thus I'm committing from multiple machines.
 - I prefer not to share single signing key across multiple machines. If one machine gets compromised, all my work will be compromised (as long as GPG signature is considered).
 - I will generate a single code signing sub-key per machine.
+- The master key will be only for `certify` purpose and will be absent from daily machine.
+- The master key will be initialised only on air-gapped machine for the purpose of generating signing sub-keys.
+- No other subkeys (auth or enc) will be in the keyring.
+- Exported public keyring will be uploaded for sites like GitHub.
 
 ### Generation of signing master key
 
@@ -119,7 +123,7 @@ Ks3jGR6CLAc=
 
 ### Back-up of the master signing key
 
-Ideally we create backup of private master key:
+We should create backup of private master key (and keep it offline):
 
 ```
 $ gpg --armour --export-options export-backup --export-secret-keys 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA | \
@@ -135,7 +139,7 @@ $ gpg --armour --export-options export-backup --export-secret-keys 4CC5B7436206D
  │                                                             │
  │ Repeat: ******************************_____________________ │
  │ ┌─────────────────────────────────────────────────────────┐ │
- │ │▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮100%▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮│ │
+ │ │                          100%                           │ │
  │ └─────────────────────────────────────────────────────────┘ │
  │        <OK>                                   <Cancel>      │
  └─────────────────────────────────────────────────────────────┘
@@ -155,7 +159,7 @@ $ gpg --armour --export-options export-backup --export-secret-keys 4CC5B7436206D
 
 Store securely (ideally offline) the file from /tmp folder.
 
-### Create signing key
+### Create signing subkey
 
 If some option are not available, use `--expert` switch.
 
@@ -215,33 +219,100 @@ Save changes? (y/N) y
 
 ```bash
 $ gpg -K
-[keyboxd]
----------
 sec   ed25519 2024-09-13 [C]
       4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
 uid           [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
 ssb   ed25519 2024-09-15 [S]
 ```
 
+### Remove master (certify) private key
+
+Now (after signing key is created) it is important to remove the certify secret key.
+
+```bash
+$ gpg -K --with-subkey-fingerprints
+[keyboxd]
+---------
+sec   ed25519 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid           [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
+ssb   ed25519 2024-09-15 [S]
+      0F7CA8F21EB8A2E863B5C8723A25D90B2E35828B
+
+gpg --delete-secret-keys 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA\!
+gpg (GnuPG) 2.4.5; Copyright (C) 2024 g10 Code GmbH
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+
+sec  ed25519/CE4B83F76925A7FA 2024-09-13 Bart Prokop (code signing) <bart@prokop.dev>
+
+Note: Only the secret part of the shown primary key will be deleted.
+
+Delete this key from the keyring? (y/N) y
+This is a secret key! - really delete? (y/N) y
+```
+
+Note the exclamation mark at the end of the fingerprint – it forces the use of a specific primary or subkey so that the command does not work on the entire key.
+The exclamation mark is quoted due to shell requirements. 
+
+```bash
+$ gpg -K --with-subkey-fingerprints
+[keyboxd]
+---------
+sec#  ed25519 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid           [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
+ssb   ed25519 2024-09-15 [S]
+      0F7CA8F21EB8A2E863B5C8723A25D90B2E35828B
+```
+
+Note the `#` after the `sec`, it says that keyring no longer contains private key.
+
+### Importing a new (public) key on other system
+
+This can easily be obtained from key server.
+
+```bash
+$ gpg -k
+pub   ed25519 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid           [  full  ] Bart Prokop (code signing) <bart@prokop.dev>
+sig 3        CE4B83F76925A7FA 2024-09-13  [self-signature]
+sig 3  R     EA86B9CE4982B047 2024-09-13  Bart Prokop (YubiKey 5C NFC) <bart@prokop.dev>
+
+$ gpg --recv-keys 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+gpg: key CE4B83F76925A7FA: "Bart Prokop (code signing) <bart@prokop.dev>" 1 new signature
+gpg: key CE4B83F76925A7FA: "Bart Prokop (code signing) <bart@prokop.dev>" 1 new subkey
+gpg: Total number processed: 1
+gpg:            new subkeys: 1
+gpg:         new signatures: 1
+
+$ gpg --list-sig 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+pub   ed25519 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid           [  full  ] Bart Prokop (code signing) <bart@prokop.dev>
+sig 3        CE4B83F76925A7FA 2024-09-13  [self-signature]
+sig 3  R     EA86B9CE4982B047 2024-09-13  Bart Prokop (YubiKey 5C NFC) <bart@prokop.dev>
+sub   ed25519 2024-09-15 [S]
+sig          CE4B83F76925A7FA 2024-09-15  [self-signature]
+```
+
+## Git Code signing
+
 ### Configure Git to allow signing
+
+First set your name and email.
 
 ```bash
 $ git config --global user.name "Bart Prokop"
 $ git config --global user.email "bart@prokop.dev"
 ```
 
-```bash
-gpg --list-secret-keys --keyid-format=long
-[keyboxd]
----------
-sec   ed25519/CE4B83F76925A7FA 2024-09-13 [C]
-      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
-uid                 [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
-ssb   ed25519/3A25D90B2E35828B 2024-09-15 [S]
+Then instruct GPG to sign your commits.
 
-gpg --list-secret-keys --keyid-format=long
-[keyboxd]
----------
+```bash
+$ gpg --list-secret-keys --keyid-format=long
 sec   ed25519/CE4B83F76925A7FA 2024-09-13 [C]
       4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
 uid                 [ultimate] Bart Prokop (code signing) <bart@prokop.dev>
@@ -250,3 +321,4 @@ ssb   ed25519/3A25D90B2E35828B 2024-09-15 [S]
 $ git config --global user.signingkey 3A25D90B2E35828B
 $ git config --global commit.gpgsign true
 ```
+
