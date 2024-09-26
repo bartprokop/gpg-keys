@@ -268,6 +268,26 @@ ssb   ed25519 2024-09-15 [S]
 ```
 
 Note the `#` after the `sec`, it says that keyring no longer contains private key.
+It is also no longer possible to add a subkeys:
+
+```bash
+$ gpg --edit-key 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+gpg (GnuPG) 2.4.5; Copyright (C) 2024 g10 Code GmbH
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Secret subkeys are available.
+
+pub  ed25519/CE4B83F76925A7FA
+     created: 2024-09-13  expires: never       usage: C
+     trust: ultimate      validity: ultimate
+ssb  ed25519/3A25D90B2E35828B
+     created: 2024-09-15  expires: never       usage: S
+[ultimate] (1). Bart Prokop (code signing) <bart@prokop.dev>
+
+gpg> addkey
+Need the secret key to do this.
+```
 
 ### Importing a new (public) key on other system
 
@@ -298,6 +318,32 @@ sub   ed25519 2024-09-15 [S]
 sig          CE4B83F76925A7FA 2024-09-15  [self-signature]
 ```
 
+### Restoring master key
+
+This should be done on air-gapped machine and newly created subkey exported for everyday use.
+
+```bash
+gpg --decrypt 4CC5B7436206D43D89BC8A22CE4B83F76925A7FA.asc | gpg --import
+```
+
+Then follow instructions to:
+- Create signing subkey
+- Remove master (certify) private key
+
+This should be signing key setup for everyday use:
+
+```bash
+$  gpg --list-secret-keys --keyid-format=long
+
+sec#  ed25519/CE4B83F76925A7FA 2024-09-13 [C]
+      4CC5B7436206D43D89BC8A22CE4B83F76925A7FA
+uid                 [  full  ] Bart Prokop (code signing) <bart@prokop.dev>
+ssb#  ed25519/3A25D90B2E35828B 2024-09-15 [S]
+ssb   ed25519/3F6970DA4BD40251 2024-09-26 [S]
+```
+
+Note that only single subkey is available for use.
+
 ## Git Code signing
 
 ### Configure Git to allow signing
@@ -321,4 +367,3 @@ ssb   ed25519/3A25D90B2E35828B 2024-09-15 [S]
 $ git config --global user.signingkey 3A25D90B2E35828B
 $ git config --global commit.gpgsign true
 ```
-
